@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather App</title>
+<style>
+    :root {
+        --bg-color-light: #f2f6fc;
+        --card-color-light: rgba(255, 255, 255, 0.8);
+        --text-color-light: #333;
+        
+        --bg-color-dark: #1e1e2f;
+        --card-color-dark: rgba(30, 30, 47, 0.8);
+        --text-color-dark: #fff;
+
+        --accent-color: #ff9800;
+    }
+    body {
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        transition: background 0.4s, color 0.4s;
+    }
+    body.light {
+        background: var(--bg-color-light);
+        color: var(--text-color-light);
+    }
+    body.dark {
+        background: var(--bg-color-dark);
+        color: var(--text-color-dark);
+    }
+    .card {
+        backdrop-filter: blur(12px);
+        padding: 30px;
+        border-radius: 20px;
+        width: 380px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        animation: fadeIn 1s ease-in-out;
+        transition: background 0.4s, color 0.4s;
+    }
+    body.light .card {
+        background: var(--card-color-light);
+    }
+    body.dark .card {
+        background: var(--card-color-dark);
+    }
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .toggle-btn {
+        cursor: pointer;
+        border: none;
+        background: none;
+        font-size: 20px;
+        transition: transform 0.3s;
+    }
+    .toggle-btn:hover {
+        transform: scale(1.2);
+    }
+    input {
+        padding: 10px;
+        width: 65%;
+        font-size: 16px;
+        border-radius: 8px;
+        border: none;
+        outline: none;
+        margin-top: 15px;
+    }
+    button {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        background-color: var(--accent-color);
+        color: white;
+        transition: 0.3s;
+    }
+    button:hover {
+        background-color: #e68900;
+        transform: scale(1.05);
+    }
+    .weather {
+        margin-top: 20px;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s ease;
+    }
+    .weather.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .weather img {
+        width: 60px;
+    }
+    .info {
+        text-align: left;
+        margin-top: 15px;
+        line-height: 1.8;
+        font-size: 14px;
+    }
+    @keyframes fadeIn {
+        from {opacity: 0; transform: scale(0.9);}
+        to {opacity: 1; transform: scale(1);}
+    }
+</style>
+</head>
+<body class="light">
+
+<div class="card">
+    <div class="header">
+        <h2>🌤 Weather</h2>
+        <button class="toggle-btn" onclick="toggleMode()">🌙</button>
+    </div>
+
+    <input type="text" id="location" placeholder="Enter city">
+    <button onclick="getWeather()">Search</button>
+
+    <div class="weather" id="weatherInfo">
+        <h3 id="cityName"></h3>
+        <img id="icon" alt="Weather Icon">
+        <p id="condition"></p>
+        <div class="info">
+            <p><strong>Temperature:</strong> <span id="temp"></span>°C</p>
+            <p><strong>Feels Like:</strong> <span id="feels"></span>°C</p>
+            <p><strong>Humidity:</strong> <span id="humidity"></span>%</p>
+            <p><strong>Wind:</strong> <span id="wind"></span> km/h</p>
+            <p><strong>Local Time:</strong> <span id="localtime"></span></p>
+            <p><strong>Air Quality Index:</strong> <span id="aqi"></span></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const body = document.body;
+    const toggleBtn = document.querySelector('.toggle-btn');
+    
+    function toggleMode() {
+        body.classList.toggle('dark');
+        body.classList.toggle('light');
+        toggleBtn.textContent = body.classList.contains('dark') ? '☀️' : '🌙';
+    }
+
+    async function getWeather() {
+        const location = document.getElementById("location").value.trim();
+        if (!location) {
+            alert("Please enter a location");
+            return;
+        }
+        
+        const apiKey = "5b825c9be1024e6f93082656251008";
+        const url = `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${location}&aqi=yes`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error("Location not found");
+            }
+            const data = await response.json();
+
+            document.getElementById("cityName").textContent = `${data.location.name}, ${data.location.country}`;
+            document.getElementById("temp").textContent = data.current.temp_c;
+            document.getElementById("feels").textContent = data.current.feelslike_c;
+            document.getElementById("condition").textContent = data.current.condition.text;
+            document.getElementById("icon").src = "https:" + data.current.condition.icon;
+            document.getElementById("humidity").textContent = data.current.humidity;
+            document.getElementById("wind").textContent = data.current.wind_kph;
+            document.getElementById("localtime").textContent = data.location.localtime;
+            document.getElementById("aqi").textContent = data.current.air_quality["pm2_5"].toFixed(1);
+
+            document.getElementById("weatherInfo").classList.add("show");
+
+        } catch (error) {
+            alert(error.message);
+            document.getElementById("weatherInfo").classList.remove("show");
+        }
+    }
+</script>
+
+</body>
+</html>
